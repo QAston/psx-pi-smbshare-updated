@@ -12,13 +12,13 @@
 # Don't forget to change the name of network interface
 # Check them with `ifconfig`
 
-ip_address="192.168.2.1"
+ip_address="192.168.3.1"
 netmask="255.255.255.0"
-dhcp_range_start="192.168.2.2"
-dhcp_range_end="192.168.2.100"
+dhcp_range_start="192.168.3.2"
+dhcp_range_end="192.168.3.100"
 dhcp_time="12h"
-eth="enxb827eb5a9b65" # builtin rpi eth port
-wlan="enx00e04c687807" # usb eth dongle
+eth="enx00e04c691055" # usb eth dongle to ps3
+wlan="enx00e04c680953" # usb eth dongle to wlan
 
 sudo systemctl start network-online.target &> /dev/null
 

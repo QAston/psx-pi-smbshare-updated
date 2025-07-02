@@ -87,10 +87,10 @@ if [ "$WIFIACCESSPOINT" = true ]; then
   # Install setup-wifi-access-point settings
   sudo apt-get install -y hostapd bridge-utils
   wget https://raw.githubusercontent.com/toolboc/psx-pi-smbshare/master/setup-wifi-access-point.sh -O /home/${USER}/setup-wifi-access-point.sh
-# disable networkmanager for enxb827eb5a9b65 - raspberrypi eth builtin port
+# disable networkmanager for enx00e04c691055 - usb dongle to ps3
   sudo cat <<'EOF' | sudo tee /etc/NetworkManager/conf.d/99-unmanaged-devices.conf
 [keyfile]
-unmanaged-devices=interface-name:enxb827eb5a9b65
+unmanaged-devices=interface-name:enx00e04c691055
 EOF
 else
   touch /home/${USER}/setup-wifi-access-point.sh
