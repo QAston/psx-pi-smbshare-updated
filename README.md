@@ -1,5 +1,7 @@
 # psx-pi-smbshare
 
+A fork of the repository that removes cron-dependent stuff and focuses on ps3netsrv and forwarding the network connection to ps3. Hardcoded stuff all around.
+
 To setup:
 
 ```
