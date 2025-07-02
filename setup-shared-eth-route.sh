@@ -5,9 +5,13 @@
 eth="enx00e04c691055" # usb eth dongle to ps3
 wlan="enx00e04c680953" # usb eth dongle to wlan
 
-# Ensure NetworkManager is running
 sudo systemctl stop NetworkManager
 
+# created using
+#sudo nmcli con add type ethernet ifname $wlan con-name wlan
+#sudo nmcli con add type ethernet ifname $eth con-name ps3-eth
+#sudo nmcli con modify ps3-eth ipv4.method shared
+#sudo nmcli con up ps3-eth
 sudo cat <<EOF | sudo tee /etc/NetworkManager/system-connections/ps3-eth.nmconnection
 [connection]
 id=ps3-eth
@@ -35,15 +39,6 @@ sudo cat <<EOF | sudo /etc/NetworkManager/conf.d/00-use-dnsmasq.conf
 [main]
 dns=dnsmasq
 EOF
-
-
-# Configure the Ethernet interface
-#sudo nmcli con add type ethernet ifname $wlan con-name wlan
-#sudo nmcli con add type ethernet ifname $eth con-name ps3-eth
-#sudo nmcli con modify ps3-eth ipv4.method shared
-#sudo nmcli con up ps3-eth
-# Restart the connections to apply changes
-#sudo nmcli con up ps3-eth
 
 
 # Enable IP forwarding

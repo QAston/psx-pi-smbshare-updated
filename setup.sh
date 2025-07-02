@@ -18,6 +18,8 @@
 
 USER=`whoami`
 
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 # Make sure we're not root otherwise the paths will be wrong
 if [ $USER = "root" ]; then
   echo "Do not run this script as root or with sudo"
@@ -45,10 +47,9 @@ sudo apt-get -y install screen wget git curl coreutils iptables hostapd
 
 # Install and configure Samba
 sudo apt-get install -y samba samba-common-bin
-wget https://raw.githubusercontent.com/toolboc/psx-pi-smbshare/master/samba-init.sh -O /home/${USER}/samba-init.sh
-sed -i "s/userplaceholder/${USER}/g" /home/${USER}/samba-init.sh
-chmod 755 /home/${USER}/samba-init.sh
-sudo cp /home/${USER}/samba-init.sh /usr/local/bin
+sed -i "s/userplaceholder/${USER}/g" ${SCRIPT_DIR}/samba-init.sh
+chmod 755 ${SCRIPT_DIR}/samba-init.sh
+sudo cp ${SCRIPT_DIR}/samba-init.sh /usr/local/bin
 sudo mkdir -m 1777 /share
 
 # Install ps3netsrv if PS3NETSRV is true
@@ -65,19 +66,11 @@ fi
 if [ "$ETHROUTE" = true ]; then
   # Install wifi-to-eth route settings
   sudo apt-get install -y dnsmasq
-  wget https://raw.githubusercontent.com/toolboc/psx-pi-smbshare/master/wifi-to-eth-route.sh -O /home/${USER}/share-eth-route.sh
-else
-  touch /home/${USER}/share-eth-route.sh
+  bash ${SCRIPT_DIR}/setup-shared-eth-route.sh
 fi
-chmod 755 /home/${USER}/share-eth-route.sh
 
 # Install USB automount settings
-wget https://raw.githubusercontent.com/toolboc/psx-pi-smbshare/master/automount-usb.sh -O /home/${USER}/automount-usb.sh
-chmod 755 /home/${USER}/automount-usb.sh
-/home/${USER}/automount-usb.sh
-
-# Set samba-init + ps3netsrv, wifi-to-eth-route, setup-wifi-access-point, and XLink Kai to run on startup
-{ echo -e "@reboot sudo bash /usr/local/bin/samba-init.sh\n@reboot sudo bash /home/${USER}/wifi-to-eth-route.sh" ; } | crontab -u ${USER} -
+bash ${SCRIPT_DIR}/setup-automount-usb.sh
 
 # Not a bad idea to reboot
 sudo reboot
