@@ -30,18 +30,6 @@ else
   PS3NETSRV=false
 fi
 
-if whiptail --yesno "Would you like to enable XLink Kai?" 8 55; then
-  XLINKKAI=true
-else
-  XLINKKAI=false
-fi
-
-if whiptail --yesno "Would you like to enable wifi access point for a direct wifi connection?" 8 55; then
-  WIFIACCESSPOINT=true
-else
-  WIFIACCESSPOINT=false
-fi
-
 if whiptail --yesno "Would you like to share wifi over ethernet, for devices without wifi? (Ethernet will no longer work for providing the pi an internet connection)" 9 55; then
   ETHROUTE=true
 else
@@ -77,59 +65,11 @@ fi
 if [ "$ETHROUTE" = true ]; then
   # Install wifi-to-eth route settings
   sudo apt-get install -y dnsmasq
-  wget https://raw.githubusercontent.com/toolboc/psx-pi-smbshare/master/wifi-to-eth-route.sh -O /home/${USER}/wifi-to-eth-route.sh
+  wget https://raw.githubusercontent.com/toolboc/psx-pi-smbshare/master/wifi-to-eth-route.sh -O /home/${USER}/share-eth-route.sh
 else
-  touch /home/${USER}/wifi-to-eth-route.sh
+  touch /home/${USER}/share-eth-route.sh
 fi
-chmod 755 /home/${USER}/wifi-to-eth-route.sh
-
-if [ "$WIFIACCESSPOINT" = true ]; then
-  # Install setup-wifi-access-point settings
-  sudo apt-get install -y hostapd bridge-utils
-  wget https://raw.githubusercontent.com/toolboc/psx-pi-smbshare/master/setup-wifi-access-point.sh -O /home/${USER}/setup-wifi-access-point.sh
-# disable networkmanager for enx00e04c691055 - usb dongle to ps3
-  sudo cat <<'EOF' | sudo tee /etc/NetworkManager/conf.d/99-unmanaged-devices.conf
-[keyfile]
-unmanaged-devices=interface-name:enx00e04c691055
-EOF
-else
-  touch /home/${USER}/setup-wifi-access-point.sh
-fi
-chmod 755 /home/${USER}/setup-wifi-access-point.sh
-
-# Install XLink Kai if XLINKKAI is true
-if [ "$XLINKKAI" = true ]; then
-
-# Remove old XLink Kai Repo if present
-sudo rm -rf /etc/apt/sources.list.d/teamxlink.list
-
-# Set up teamxlink repository and install XLink Kai
-
-sudo apt-get install -y ca-certificates curl gnupg
-sudo mkdir -m 0755 -p /etc/apt/keyrings
-sudo rm /etc/apt/keyrings/teamxlink.gpg
-curl -fsSL https://dist.teamxlink.co.uk/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/teamxlink.gpg
-sudo chmod a+r /etc/apt/keyrings/teamxlink.gpg
-echo  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/teamxlink.gpg] https://dist.teamxlink.co.uk/linux/debian/static/deb/release/ /" | sudo tee /etc/apt/sources.list.d/teamxlink.list > /dev/null
-sudo apt-get update
-sudo apt-get install -y xlinkkai
-
-# Write XLink Kai launch script
-cat <<'EOF' > /home/${USER}/launchkai.sh
-echo "Checking for XLink Kai updates"
-sudo apt-get install xlinkkai -y
-echo "Launching XLink Kai"
-while true; do
-    screen -dmS kai kaiengine
-    sleep 5
-done
-EOF
-else
-touch /home/${USER}/launchkai.sh
-
-#End of XLink Kai install
-fi
-chmod 755 /home/${USER}/launchkai.sh
+chmod 755 /home/${USER}/share-eth-route.sh
 
 # Install USB automount settings
 wget https://raw.githubusercontent.com/toolboc/psx-pi-smbshare/master/automount-usb.sh -O /home/${USER}/automount-usb.sh
@@ -137,7 +77,7 @@ chmod 755 /home/${USER}/automount-usb.sh
 /home/${USER}/automount-usb.sh
 
 # Set samba-init + ps3netsrv, wifi-to-eth-route, setup-wifi-access-point, and XLink Kai to run on startup
-{ echo -e "@reboot sudo bash /usr/local/bin/samba-init.sh\n@reboot sudo bash /home/${USER}/wifi-to-eth-route.sh && sudo bash /home/${USER}/setup-wifi-access-point.sh\n@reboot bash /home/${USER}/launchkai.sh"; } | crontab -u ${USER} -
+{ echo -e "@reboot sudo bash /usr/local/bin/samba-init.sh\n@reboot sudo bash /home/${USER}/wifi-to-eth-route.sh" ; } | crontab -u ${USER} -
 
 # Not a bad idea to reboot
 sudo reboot
