@@ -91,15 +91,21 @@ then
     exit
 fi
 
-runuser userplaceholder -s /bin/bash -c "udisksctl mount -b /dev/${PART} --no-user-interaction"
-
-MOUNTPOINT=`lsblk /dev/${PART} -o MOUNTPOINTS -n`
-
-if [ -f /usr/local/bin/ps3netsrv++ ]; then
-    pkill ps3netsrv++
-    /usr/local/bin/ps3netsrv++ -d ${MOUNTPOINT}
+if [ "$FS_LABEL" = "5TB4KN" ]
+then
+    echo "found $FS_LABEL"
+else
+    exit
 fi
 
+runuser userplaceholder -s /bin/bash -c "udisksctl mount -b /dev/${PART} --no-user-interaction"
+FS_PATH=`lsblk -o name,mountpoints | grep ${PART} | awk '{print $2}'`
+if [ -f /usr/local/bin/ps3netsrv++ ]; then
+    pkill ps3netsrv++
+    /usr/local/bin/ps3netsrv++ -d ${FS_PATH}
+fi
+
+#todo: multidrive support: https://gist.github.com/meetnick/fb5587d25d4174d7adbc8a1ded642d3c
 #create a new smb share for the mounted drive
 cat <<EOS | sudo tee /etc/samba/smb.conf
 [global]
@@ -110,7 +116,7 @@ map to guest = bad user
 allow insecure wide links = yes
 [share]
 Comment = default shared folder
-Path = ${MOUNTPOINT}
+Path = ${FS_PATH}
 Browseable = yes
 Writeable = Yes
 only guest = no
