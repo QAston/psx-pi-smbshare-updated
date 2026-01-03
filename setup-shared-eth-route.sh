@@ -32,7 +32,7 @@ method=auto
 [proxy]
 EOF
 
-sudo cat <<EOF | sudo /etc/NetworkManager/conf.d/00-use-dnsmasq.conf
+sudo cat <<EOF | sudo tee /etc/NetworkManager/conf.d/00-use-dnsmasq.conf
 # /etc/NetworkManager/conf.d/00-use-dnsmasq.conf
 #
 # This enabled the dnsmasq plugin.
@@ -47,6 +47,8 @@ sudo sysctl -w net.ipv4.ip_forward=1
 sudo cat <<'EOF' | sudo tee /etc/sysctl.d/10-forward.conf
 net.ipv4.ip_forward=1
 EOF
+
+sudo nmcli con up ps3-eth
 
 sudo systemctl restart NetworkManager
 
