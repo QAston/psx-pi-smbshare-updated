@@ -24,6 +24,7 @@ timestamp=1751488651
 
 [ipv4]
 method=shared
+address1=10.42.0.1/24
 
 [ipv6]
 addr-gen-mode=default
@@ -43,9 +44,11 @@ EOF
 
 # Enable IP forwarding
 sudo sysctl -w net.ipv4.ip_forward=1
+sudo sysctl -w net.ipv6.conf.all.forwarding=1
 
 sudo cat <<'EOF' | sudo tee /etc/sysctl.d/10-forward.conf
 net.ipv4.ip_forward=1
+net.ipv6.conf.all.forwarding=1
 EOF
 
 sudo nmcli con up ps3-eth

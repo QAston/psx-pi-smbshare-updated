@@ -47,9 +47,6 @@ sudo apt-get -y install screen wget git curl coreutils iptables hostapd
 
 # Install and configure Samba
 sudo apt-get install -y samba samba-common-bin
-sed -i "s/userplaceholder/${USER}/g" ${SCRIPT_DIR}/samba-init.sh
-chmod 755 ${SCRIPT_DIR}/samba-init.sh
-sudo cp ${SCRIPT_DIR}/samba-init.sh /usr/local/bin
 sudo mkdir -m 1777 /share
 
 # Install ps3netsrv if PS3NETSRV is true
