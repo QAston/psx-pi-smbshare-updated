@@ -14,7 +14,7 @@ USER=`whoami`
 #sudo apt-get update
 
 # Install NTFS Read/Write Support and udisks2
-sudo apt-get install -y ntfs-3g udisks2
+sudo apt-get install -y ntfs-3g udisks2 jq
 
 # Add user to disk group
 sudo usermod -a -G disk ${USER}
@@ -22,6 +22,15 @@ sudo usermod -a -G disk ${USER}
 # Create polkit rule
 sudo mkdir -p /etc/polkit-1/rules.d/
 sudo mkdir -p /etc/polkit-1/localauthority/50-local.d/
+
+# configure udisks2
+sudo cat <<'EOF' | sudo tee /etc/udisks2/mount_options.conf
+[defaults]
+# use ntfs3g (ntfs is symlinked to ntfs3g on raspian)
+ntfs_drivers=ntfs
+# use noatime for all filesystems
+defaults=noatime
+EOF
 
 # For polkit > 105
 sudo cat <<'EOF' | sudo tee /etc/polkit-1/rules.d/10-udisks2.rules
@@ -146,7 +155,15 @@ then
 	exit
 fi
 
-FS_LABEL=`lsblk -o name,label | grep ${PART} | awk '{print $2}'`
+FS_INFO=`lsblk /dev/${PART} -J -o 'name,label,fstype'`
+fs_status =$?
+if [ "${fs_status}" -ne 0 ]; then
+	echo "Failed to get filesystem info for /dev/${PART}: ${FS_INFO}" >&2
+	exit 1
+fi
+
+FS_LABEL=`echo ${FS_INFO} | jq -r '.blockdevices[0].label'`
+FS_TYPE=`echo ${FS_INFO} | jq -r '.blockdevices[0].fstype'`
 
 if [[ "$FS_LABEL" == PS2SMB* ]]
 then
@@ -168,7 +185,21 @@ for attempt in $(seq 1 10); do
     else
 		echo "Mount attempt ${attempt} succeeded but mount point not found." 
 	fi
-    sleep 1
+
+	if [ "${FS_TYPE}" == "ntfs" ]; then
+		echo "Attempting to fix ntfs by running ntfsfix on /dev/${PART}"
+		ntfsfix_output=$(sudo ntfsfix /dev/${PART} 2>&1)
+		ntfsfix_status=$?
+		if [ "${ntfsfix_status}" -ne 0 ]; then
+			echo "ntfsfix failed: ${ntfsfix_output}" >&2
+			exit 1
+		else
+			echo "ntfsfix succeeded, retrying mount..."
+		fi
+	else
+		echo "Filesystem type is ${FS_TYPE}, not ntfs. Skipping ntfsfix."
+    	sleep 1
+	fi
 done
 
 if [ -z "${FS_PATH}" ]; then
