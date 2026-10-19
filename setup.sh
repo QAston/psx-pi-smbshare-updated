@@ -70,4 +70,4 @@ fi
 bash ${SCRIPT_DIR}/setup-automount-usb.sh
 
 # Not a bad idea to reboot
-sudo reboot
+sudo systemctl reboot -i
